@@ -47,7 +47,7 @@
               <select v-model="form.unit_id" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/30 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all" required>
                 <option value="">-- اختر الوحدة --</option>
                 <option v-for="unit in units" :key="unit.id" :value="unit.id">
-                  {{ unit.unit_number }} - {{ unit.price ? formatCurrency(unit.price) : '' }}
+                  {{ unit.unit_number }} - ({{ unit.total_price ? formatCurrency(unit.total_price) : '' }})
                 </option>
               </select>
             </div>
@@ -59,12 +59,12 @@
               <input v-model.number="form.installment_number" type="number" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/30 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all" required />
             </div>
             
-            <!-- <div>
+            <div>
               <label class="block text-sm font-medium text-slate-700 mb-1.5">
                 المبلغ <span class="text-red-500">*</span>
               </label>
-              <input v-model.number="form.amount" type="number" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/30 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all" required />
-            </div> -->
+              <input v-model.number="form.amount" type="number" step="0.01" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/30 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all" required />
+            </div> 
             
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1.5">
@@ -85,12 +85,12 @@
               </select>
             </div>
             
-            <!-- <div>
+            <div>
               <label class="block text-sm font-medium text-slate-700 mb-1.5">
                 المبلغ المدفوع
               </label>
-              <input v-model.number="form.paid_amount" type="number" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/30 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all" />
-            </div> -->
+              <input v-model.number="form.paid_amount" type="number" step="0.01" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/30 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all" />
+            </div>
             
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1.5">
@@ -150,10 +150,10 @@ export default {
         client_id: '',
         unit_id: '',
         installment_number: '',
-        // amount: '',
+        amount: '',
         due_date: '',
         status: 'pending',
-        // paid_amount: 0,
+        paid_amount: 0,
         paid_date: '',
         notes: ''
       }
@@ -176,21 +176,38 @@ export default {
   
   methods: {
     formatCurrency(value) {
-      if (!value) return '0 ج.م';
+      if (!value || value === 0) return '0 ج.م';
       return new Intl.NumberFormat('ar-EG', { style: 'currency', currency: 'EGP' }).format(value);
     },
     
+    // ✅ جلب بيانات القسط مع مرونة للـ API
     async fetchInstallment() {
       this.loading = true;
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get(`http://127.0.0.1:8000/api/v1/installments/${this.installmentId}`, {
+        const response = await axios.get(`https://api.mawtin.net/api/v1/installments/${this.installmentId}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        
-        if (response.data.success) {
-          this.form = response.data.data;
+
+        // استخراج البيانات بغض النظر عن المفتاح success أو غيرها
+        let data = response.data;
+        if (data.success && data.data) {
+          data = data.data;
+        } else if (data.data && !data.success) {
+          data = data.data;
         }
+        
+        this.form = {
+          client_id: data.client_id || '',
+          unit_id: data.unit_id || '',
+          installment_number: data.installment_number || '',
+          amount: data.amount || '',
+          due_date: data.due_date ? data.due_date.split('T')[0] : '',
+          status: data.status || 'pending',
+          paid_amount: data.paid_amount || 0,
+          paid_date: data.paid_date ? data.paid_date.split('T')[0] : '',
+          notes: data.notes || ''
+        };
       } catch (error) {
         console.error('Error:', error);
         this.showMessage('فشل في تحميل بيانات القسط', 'error');
@@ -202,54 +219,99 @@ export default {
       }
     },
     
+    // ✅ جلب العملاء مع مرونة للـ API
     async fetchClients() {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('http://127.0.0.1:8000/api/v1/clients', {
+        const response = await axios.get('https://api.mawtin.net/api/v1/clients', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        if (response.data.success) {
-          this.clients = response.data.data;
-        }
+        let clientsArray = [];
+        const data = response.data;
+        if (Array.isArray(data)) clientsArray = data;
+        else if (data.data && Array.isArray(data.data)) clientsArray = data.data;
+        else if (data.data && data.data.data && Array.isArray(data.data.data)) clientsArray = data.data.data;
+        
+        this.clients = clientsArray;
       } catch (error) {
-        console.error('Error:', error);
+        console.error('Error fetching clients:', error);
+        this.clients = [];
       }
     },
     
+    // ✅ جلب الوحدات مع مرونة للـ API
     async fetchUnits() {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('http://127.0.0.1:8000/api/v1/units', {
+        const response = await axios.get('https://api.mawtin.net/api/v1/units', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        if (response.data.success) {
-          this.units = response.data.data;
-        }
+        let unitsArray = [];
+        const data = response.data;
+        if (Array.isArray(data)) unitsArray = data;
+        else if (data.data && Array.isArray(data.data)) unitsArray = data.data;
+        else if (data.data && data.data.data && Array.isArray(data.data.data)) unitsArray = data.data.data;
+        
+        this.units = unitsArray;
       } catch (error) {
-        console.error('Error:', error);
+        console.error('Error fetching units:', error);
+        this.units = [];
       }
     },
     
+    // ✅ تحديث القسط مع التأكد من تحويل البيانات
     async submitForm() {
-      this.updating = true;
+      // التحقق من صحة المدخلات
+      if (!this.form.client_id) {
+        this.showMessage('الرجاء اختيار العميل', 'error');
+        return;
+      }
+      if (!this.form.unit_id) {
+        this.showMessage('الرجاء اختيار الوحدة', 'error');
+        return;
+      }
+      if (!this.form.installment_number) {
+        this.showMessage('الرجاء إدخال رقم القسط', 'error');
+        return;
+      }
+      if (!this.form.amount || this.form.amount <= 0) {
+        this.showMessage('الرجاء إدخال مبلغ صحيح', 'error');
+        return;
+      }
       
+      this.updating = true;
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.put(`http://127.0.0.1:8000/api/v1/installments/${this.installmentId}`, this.form, {
+        const payload = {
+          client_id: this.form.client_id,
+          unit_id: this.form.unit_id,
+          installment_number: this.form.installment_number,
+          amount: this.form.amount,
+          due_date: this.form.due_date,
+          status: this.form.status,
+          paid_amount: this.form.paid_amount || 0,
+          paid_date: this.form.paid_date || null,
+          notes: this.form.notes || null
+        };
+        
+        const response = await axios.put(`https://api.mawtin.net/api/v1/installments/${this.installmentId}`, payload, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        if (response.data.success) {
+        // أي رد ناجح (status 2xx) يعني نجاح
+        if (response.status === 200 || response.status === 201) {
           this.showMessage('تم تحديث القسط بنجاح', 'success');
           setTimeout(() => {
             this.$router.push('/installments');
           }, 1500);
+        } else {
+          throw new Error('Unexpected response');
         }
       } catch (error) {
-        console.error('Error:', error);
-        const message = error.response?.data?.message || 'حدث خطأ في تحديث البيانات';
+        console.error('Error updating:', error);
+        const message = error.response?.data?.message || error.response?.data?.errors || 'حدث خطأ في تحديث البيانات';
         this.showMessage(message, 'error');
       } finally {
         this.updating = false;
@@ -260,7 +322,6 @@ export default {
       this.toastMessage = message;
       this.toastType = type;
       this.showToast = true;
-      
       setTimeout(() => {
         this.showToast = false;
       }, 3000);
@@ -270,22 +331,10 @@ export default {
 </script>
 
 <style scoped>
-.rtl {
-  direction: rtl;
-}
-
+.rtl { direction: rtl; }
 @keyframes slideIn {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
-
-.animate-slideIn {
-  animation: slideIn 0.3s ease-out;
-}
+.animate-slideIn { animation: slideIn 0.3s ease-out; }
 </style>

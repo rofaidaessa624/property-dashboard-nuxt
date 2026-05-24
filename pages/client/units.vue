@@ -66,7 +66,7 @@ export default {
       this.loading = true;
       try {
         const token = localStorage.getItem('client_token');
-        const response = await axios.get('http://127.0.0.1:8000/api/v1/client/units', {
+        const response = await axios.get('https://api.mawtin.net/api/v1/client/units', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         

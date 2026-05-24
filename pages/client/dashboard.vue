@@ -171,7 +171,7 @@ export default {
       this.loading = true;
       try {
         const token = localStorage.getItem('client_token');
-        const response = await axios.get('http://127.0.0.1:8000/api/v1/client/dashboard', {
+        const response = await axios.get('https://api.mawtin.net/api/v1/client/dashboard', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
@@ -198,7 +198,7 @@ export default {
       try {
         const token = localStorage.getItem('client_token');
         if (token) {
-          await axios.post('http://127.0.0.1:8000/api/v1/client/logout', {}, {
+          await axios.post('https://api.mawtin.net/api/v1/client/logout', {}, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
         }

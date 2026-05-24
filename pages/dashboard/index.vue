@@ -41,7 +41,7 @@ onMounted(async () => {
   }
   
   try {
-    const res = await axios.get('http://127.0.0.1:8000/api/v1/dashboard/stats', {
+    const res = await axios.get('https://api.mawtin.net/api/v1/dashboard/stats', {
       headers: { Authorization: `Bearer ${token}` }
     })
     if (res.data.success) {

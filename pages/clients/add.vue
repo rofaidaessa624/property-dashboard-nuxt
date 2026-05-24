@@ -41,19 +41,6 @@
               
               <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1.5">
-                  البريد الإلكتروني <span class="text-red-500">*</span>
-                </label>
-                <input 
-                  v-model="form.email" 
-                  type="email" 
-                  class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/30 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
-                  placeholder="example@domain.com"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1.5">
                   رقم الهاتف <span class="text-red-500">*</span>
                 </label>
                 <input 
@@ -90,12 +77,15 @@
               
               <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1.5">
-                  الحالة
+                  كلمة المرور <span class="text-red-500">*</span>
                 </label>
-                <select v-model="form.is_active" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/30 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all">
-                  <option :value="true">نشط</option>
-                  <option :value="false">غير نشط</option>
-                </select>
+                <input 
+                  v-model="form.password" 
+                  type="password" 
+                  class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/30 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                  placeholder="********"
+                  required
+                />
               </div>
             </div>
           </div>
@@ -118,8 +108,53 @@
               ></textarea>
             </div>
           </div>
+
+          <!-- ========== 3. معلومات الوسيط (السمسار) ========== -->
+          <div class="mb-8">
+            <h3 class="text-base font-bold text-slate-800 pb-3 border-b-2 border-blue-500 flex items-center gap-2">
+              <span>🤝</span> معلومات الوسيط (السمسار)
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                  رقم هاتف إضافي (اختياري)
+                </label>
+                <input 
+                  v-model="form.phone2" 
+                  type="tel" 
+                  class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/30 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                  placeholder="رقم هاتف آخر"
+                />
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                  اسم السمسار (اختياري)
+                </label>
+                <input 
+                  v-model="form.broker_name" 
+                  type="text" 
+                  class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/30 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                  placeholder="مثال: محمد علي"
+                />
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                  رقم هاتف السمسار (اختياري)
+                </label>
+                <input 
+                  v-model="form.broker_phone" 
+                  type="tel" 
+                  class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/30 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                  placeholder="مثال: 01234567890"
+                />
+              </div>
+            </div>
+          </div>
           
-          <!-- ========== 3. الوحدة والأقساط ========== -->
+          <!-- ========== 4. الوحدة والأقساط ========== -->
           <div class="mb-8">
             <h3 class="text-base font-bold text-slate-800 pb-3 border-b-2 border-blue-500 flex items-center gap-2">
               <span>🏢</span> معلومات الوحدة والأقساط
@@ -133,12 +168,12 @@
                 <select v-model="selectedUnit" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/30 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all" @change="calculateInstallments">
                   <option value="">-- اختر الوحدة --</option>
                   <option v-for="unit in units" :key="unit.id" :value="unit">
-                    {{ unit.unit_number }} - {{ formatCurrency(unit.price) }} ({{ unit.area }} م²)
+                    {{ unit.unit_number }} - {{ formatCurrency(unit.total_price) }} ({{ unit.area }} م²)
                   </option>
                 </select>
                 
                 <div v-if="selectedUnit" class="mt-3 p-3 bg-blue-50/50 rounded-xl border border-blue-100">
-                  <p class="text-sm"><span class="font-bold">سعر الوحدة:</span> {{ formatCurrency(selectedUnit.price) }}</p>
+                  <p class="text-sm"><span class="font-bold">سعر الوحدة:</span> {{ formatCurrency(selectedUnit.total_price) }}</p>
                   <p class="text-sm mt-1"><span class="font-bold">المساحة:</span> {{ selectedUnit.area }} م²</p>
                   <p class="text-sm mt-1"><span class="font-bold">الموقع:</span> {{ selectedUnit.location || 'غير محدد' }}</p>
                 </div>
@@ -177,37 +212,64 @@
               />
             </div>
             
-            <!-- معاينة الأقساط -->
+            <!-- معاينة الأقساط مع إمكانية تعديل المبلغ لكل قسط -->
             <div v-if="installmentsPreview.length > 0" class="mt-6">
               <div class="flex justify-between items-center mb-3">
-                <h4 class="font-bold text-slate-700">📅 تفاصيل الأقساط</h4>
+                <h4 class="font-bold text-slate-700">📅 تفاصيل الأقساط (يمكنك تعديل كل مبلغ على حدة)</h4>
                 <button type="button" @click="showInstallments = !showInstallments" class="text-xs text-blue-600 hover:text-blue-700 font-medium">
                   {{ showInstallments ? 'إخفاء التفاصيل' : 'عرض التفاصيل' }}
                 </button>
               </div>
               
               <div v-if="showInstallments" class="border border-slate-200 rounded-xl overflow-hidden">
-                <div class="grid grid-cols-3 gap-2 bg-slate-100 p-3 text-sm font-bold text-slate-700">
-                  <div>رقم القسط</div>
-                  <div>المبلغ</div>
-                  <div>تاريخ الاستحقاق</div>
+                <!-- جدول الأقساط -->
+                <div class="overflow-x-auto">
+                  <table class="w-full text-sm">
+                    <thead class="bg-slate-100">
+                      <tr>
+                        <th class="p-3 text-right font-bold text-slate-700">رقم القسط</th>
+                        <th class="p-3 text-right font-bold text-slate-700">المبلغ (ج.م)</th>
+                        <th class="p-3 text-right font-bold text-slate-700">تاريخ الاستحقاق</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="inst in installmentsPreview" :key="inst.installment_number" class="border-t border-slate-100">
+                        <td class="p-3 text-slate-600">{{ inst.installment_number }}</td>
+                        <td class="p-3">
+                          <input 
+                            type="number" 
+                            v-model.number="inst.amount"
+                            class="w-32 px-2 py-1 border border-slate-200 rounded-lg text-sm focus:border-blue-400 focus:ring-1 focus:ring-blue-100 outline-none"
+                            @input="updateTotalAmount"
+                          />
+                        </td>
+                        <td class="p-3">
+                          <input 
+                            type="date" 
+                            v-model="inst.due_date"
+                            class="px-2 py-1 border border-slate-200 rounded-lg text-sm focus:border-blue-400 focus:ring-1 focus:ring-blue-100 outline-none"
+                          />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
-                <div v-for="inst in installmentsPreview" :key="inst.installment_number" class="grid grid-cols-3 gap-2 p-3 border-t border-slate-100 text-sm text-slate-600">
-                  <div>{{ inst.installment_number }}</div>
-                  <div>{{ formatCurrency(inst.amount) }}</div>
-                  <div>{{ inst.due_date }}</div>
-                </div>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 bg-blue-50 p-3 border-t border-blue-100 text-xs md:text-sm">
-                  <div><span class="font-bold">المجموع الكلي:</span> {{ formatCurrency(totalInstallmentAmount) }}</div>
+                
+                <!-- ملخص الأقساط مع التحقق من إجمالي الأقساط -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 p-3 border-t text-xs md:text-sm" :class="totalInstallmentsAmount === remainingAmount ? 'bg-blue-50' : 'bg-red-50'">
+                  <div><span class="font-bold">المجموع الكلي للوحدة:</span> {{ formatCurrency(selectedUnit.total_price) }}</div>
                   <div><span class="font-bold">المقدم ({{ downPayment }}%):</span> {{ formatCurrency(downPaymentAmount) }}</div>
-                  <div><span class="font-bold">المتبقي:</span> {{ formatCurrency(remainingAmount) }}</div>
-                  <div><span class="font-bold">القسط الشهري:</span> {{ formatCurrency(monthlyInstallmentAmount) }}</div>
+                  <div><span class="font-bold">المتبقي المطلوب:</span> {{ formatCurrency(remainingAmount) }}</div>
+                  <div :class="totalInstallmentsAmount !== remainingAmount ? 'text-red-600 font-bold' : ''">
+                    <span class="font-bold">إجمالي الأقساط المدخلة:</span> {{ formatCurrency(totalInstallmentsAmount) }}
+                    <span v-if="Math.abs(totalInstallmentsAmount - remainingAmount) > 0.01" class="text-red-500 mr-2">⚠️ غير مطابق</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
           
-          <!-- ========== 4. صور الوحدة ========== -->
+          <!-- ========== 5. صور الوحدة ========== -->
           <div class="mb-8">
             <h3 class="text-base font-bold text-slate-800 pb-3 border-b-2 border-blue-500 flex items-center gap-2">
               <span>🖼️</span> صور الوحدة
@@ -234,52 +296,6 @@
                 <button type="button" class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 text-xs hover:bg-red-600 transition-colors" @click="removeImage(index)">✖</button>
                 <input v-model="img.caption" type="text" placeholder="وصف الصورة" class="w-full mt-2 px-2 py-1 text-xs border border-slate-200 rounded-lg focus:border-blue-400 outline-none" />
               </div>
-            </div>
-          </div>
-          
-          <!-- ========== 5. تطويرات الوحدة ========== -->
-          <div class="mb-8">
-            <h3 class="text-base font-bold text-slate-800 pb-3 border-b-2 border-blue-500 flex items-center gap-2">
-              <span>📍</span> تطويرات الوحدة
-            </h3>
-            
-            <div class="mt-5">
-              <button type="button" class="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors" @click="addMilestone">
-                + إضافة مرحلة تطوير جديدة
-              </button>
-            </div>
-            
-            <div v-for="(milestone, index) in milestones" :key="index" class="mt-4 p-5 bg-slate-50/50 rounded-xl border border-slate-200">
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label class="block text-xs font-medium text-slate-600 mb-1">اسم المرحلة</label>
-                  <input v-model="milestone.name" type="text" class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:border-blue-400 outline-none" placeholder="أعمال الحفر" />
-                </div>
-                <div>
-                  <label class="block text-xs font-medium text-slate-600 mb-1">تاريخ الإنجاز</label>
-                  <input v-model="milestone.completion_date" type="date" class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:border-blue-400 outline-none" />
-                </div>
-                <div>
-                  <label class="block text-xs font-medium text-slate-600 mb-1">الحالة</label>
-                  <select v-model="milestone.status" class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:border-blue-400 outline-none">
-                    <option value="pending">⏳ قيد الانتظار</option>
-                    <option value="in_progress">⚙️ قيد التنفيذ</option>
-                    <option value="completed">✅ منجز</option>
-                    <option value="delayed">⚠️ متأخر</option>
-                  </select>
-                </div>
-              </div>
-              <div class="mt-3">
-                <label class="block text-xs font-medium text-slate-600 mb-1">ملاحظات</label>
-                <textarea v-model="milestone.notes" class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:border-blue-400 outline-none resize-none" rows="2" placeholder="تفاصيل إضافية..."></textarea>
-              </div>
-              <button type="button" class="mt-3 text-red-500 hover:text-red-600 text-sm font-medium" @click="removeMilestone(index)">
-                حذف المرحلة
-              </button>
-            </div>
-            
-            <div v-if="milestones.length === 0" class="mt-4 p-8 text-center bg-slate-50/50 rounded-xl border border-dashed border-slate-300">
-              <p class="text-slate-400 text-sm">📌 لا توجد مراحل تطوير. أضف المراحل لتتبع تقدم الوحدة.</p>
             </div>
           </div>
           
@@ -322,14 +338,15 @@ export default {
   data() {
     return {
       form: {
-        id: null,
         full_name: '',
-        email: '',
         phone: '',
+        phone2: '',
         national_id: '',
         address: '',
         gender: '',
-        is_active: true
+        password: '',
+        broker_name: '',
+        broker_phone: ''
       },
       units: [],
       selectedUnit: null,
@@ -338,8 +355,6 @@ export default {
       installmentsPreview: [],
       showInstallments: true,
       uploadedImages: [],
-      imageFiles: [],
-      milestones: [],
       submitting: false,
       loading: false,
       showToast: false,
@@ -349,20 +364,17 @@ export default {
   },
   
   computed: {
-    totalInstallmentAmount() {
-      if (!this.selectedUnit) return 0;
-      return this.selectedUnit.price * (1 - this.downPayment / 100);
-    },
     downPaymentAmount() {
       if (!this.selectedUnit) return 0;
-      return this.selectedUnit.price * (this.downPayment / 100);
+      return this.selectedUnit.total_price * (this.downPayment / 100);
     },
     remainingAmount() {
-      return this.totalInstallmentAmount;
+      if (!this.selectedUnit) return 0;
+      return this.selectedUnit.total_price * (1 - this.downPayment / 100);
     },
-    monthlyInstallmentAmount() {
-      if (!this.numberOfInstallments || this.numberOfInstallments <= 0) return 0;
-      return this.totalInstallmentAmount / this.numberOfInstallments;
+    totalInstallmentsAmount() {
+      if (!this.installmentsPreview.length) return 0;
+      return this.installmentsPreview.reduce((sum, inst) => sum + (inst.amount || 0), 0);
     }
   },
   
@@ -372,7 +384,7 @@ export default {
   
   methods: {
     formatCurrency(value) {
-      if (!value) return '0 ج.م';
+      if (!value && value !== 0) return '0 ج.م';
       return new Intl.NumberFormat('ar-EG', { style: 'currency', currency: 'EGP' }).format(value);
     },
     
@@ -380,12 +392,18 @@ export default {
       this.loading = true;
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('http://127.0.0.1:8000/api/v1/units', {
+        const response = await axios.get('https://api.mawtin.net/api/v1/units', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        if (response.data.success) {
+        if (response.data.data) {
           this.units = response.data.data;
+        } else if (Array.isArray(response.data)) {
+          this.units = response.data;
+        } else if (response.data.units) {
+          this.units = response.data.units;
+        } else {
+          this.units = [];
         }
       } catch (error) {
         console.error('Error fetching units:', error);
@@ -401,23 +419,35 @@ export default {
         return;
       }
       
-      const monthlyAmount = this.monthlyInstallmentAmount;
-      const startDate = new Date();
-      const preview = [];
+      // Default equal amount
+      const defaultAmount = Math.round(this.remainingAmount / this.numberOfInstallments);
       
+      let startDate = new Date();
+      if (this.selectedUnit.start_date) {
+        startDate = new Date(this.selectedUnit.start_date);
+      }
+      
+      const preview = [];
       for (let i = 1; i <= this.numberOfInstallments; i++) {
         const dueDate = new Date(startDate);
         dueDate.setMonth(startDate.getMonth() + i);
         
         preview.push({
           installment_number: i,
-          amount: Math.round(monthlyAmount),
+          amount: defaultAmount,
           due_date: dueDate.toISOString().split('T')[0],
           status: 'pending'
         });
       }
       
       this.installmentsPreview = preview;
+      this.updateTotalAmount(); // just to update UI if needed
+    },
+    
+    updateTotalAmount() {
+      // This method is called when any amount changes
+      // We can add validation or warning here
+      this.$forceUpdate(); // ensure UI updates for the summary
     },
     
     handleFileSelect(event) {
@@ -443,137 +473,123 @@ export default {
             });
           };
           reader.readAsDataURL(file);
-          this.imageFiles.push(file);
         }
       });
     },
     
     removeImage(index) {
       this.uploadedImages.splice(index, 1);
-      this.imageFiles.splice(index, 1);
-    },
-    
-    addMilestone() {
-      this.milestones.push({
-        name: '',
-        completion_date: '',
-        status: 'pending',
-        notes: ''
-      });
-    },
-    
-    removeMilestone(index) {
-      this.milestones.splice(index, 1);
-    },
-    
-    async uploadImages(unitId, token) {
-      if (this.imageFiles.length === 0) return;
-      
-      const formData = new FormData();
-      this.imageFiles.forEach((file, index) => {
-        formData.append('images[]', file);
-        if (this.uploadedImages[index]?.caption) {
-          formData.append(`captions[${index}]`, this.uploadedImages[index].caption);
-        }
-      });
-      formData.append('unit_id', unitId);
-      
-      await axios.post('http://127.0.0.1:8000/api/v1/unit-images', formData, {
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-    },
-    
-    async saveMilestones(unitId, token) {
-      if (this.milestones.length === 0) return;
-      
-      for (const milestone of this.milestones) {
-        await axios.post('http://127.0.0.1:8000/api/v1/unit-milestones', {
-          unit_id: unitId,
-          name: milestone.name,
-          completion_date: milestone.completion_date,
-          status: milestone.status,
-          notes: milestone.notes
-        }, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-      }
-    },
-    
-    async saveInstallments(clientId, unitId, token) {
-      if (!unitId || this.installmentsPreview.length === 0) return;
-      
-      for (const installment of this.installmentsPreview) {
-        await axios.post('http://127.0.0.1:8000/api/v1/installments', {
-          client_id: clientId,
-          unit_id: unitId,
-          installment_number: installment.installment_number,
-          amount: installment.amount,
-          due_date: installment.due_date,
-          status: 'pending'
-        }, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-      }
     },
     
     async submitForm() {
+      // Validation
+      if (!this.form.full_name) {
+        this.showMessage('الرجاء إدخال الاسم الكامل', 'error');
+        return;
+      }
+      if (!this.form.phone) {
+        this.showMessage('الرجاء إدخال رقم الهاتف', 'error');
+        return;
+      }
+      if (!this.form.password) {
+        this.showMessage('الرجاء إدخال كلمة المرور', 'error');
+        return;
+      }
+      if (!this.selectedUnit) {
+        this.showMessage('الرجاء اختيار الوحدة', 'error');
+        return;
+      }
+      if (!this.numberOfInstallments || this.numberOfInstallments <= 0) {
+        this.showMessage('الرجاء إدخال عدد الأقساط', 'error');
+        return;
+      }
+      
+      // Check that total installments amount matches remaining amount (with small tolerance)
+      const diff = Math.abs(this.totalInstallmentsAmount - this.remainingAmount);
+      if (diff > 0.01) {
+        this.showMessage(`إجمالي الأقساط (${this.formatCurrency(this.totalInstallmentsAmount)}) لا يساوي المبلغ المتبقي (${this.formatCurrency(this.remainingAmount)}). الرجاء تعديل قيم الأقساط.`, 'error');
+        return;
+      }
+      
       this.submitting = true;
       
       try {
         const token = localStorage.getItem('token');
         
-        const clientResponse = await axios.post('http://127.0.0.1:8000/api/v1/clients', this.form, {
-          headers: { 'Authorization': `Bearer ${token}` }
+        // 1. Create client
+        const clientData = {
+          full_name: this.form.full_name,
+          phone: this.form.phone,
+          phone2: this.form.phone2,
+          national_id: this.form.national_id,
+          password: this.form.password,
+          address: this.form.address,
+          gender: this.form.gender,
+          broker_name: this.form.broker_name,
+          broker_phone: this.form.broker_phone,
+          is_active: true
+        };
+        
+        const clientResponse = await axios.post('https://api.mawtin.net/api/v1/clients', clientData, {
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
         });
         
-        if (!clientResponse.data.success) {
-          throw new Error('فشل في إنشاء العميل');
+        const clientId = clientResponse.data.data?.id;
+        if (!clientId) throw new Error('فشل في إنشاء العميل');
+        
+        // 2. Link client with unit
+        const clientUnitData = {
+          client_id: clientId,
+          unit_id: this.selectedUnit.id,
+          agreed_price: this.selectedUnit.total_price,
+          paid_amount: this.downPaymentAmount,
+          purchase_date: new Date().toISOString().split('T')[0],
+          contract_status: 'active'
+        };
+        
+        await axios.post('https://api.mawtin.net/api/v1/client-unit', clientUnitData, {
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+        });
+        
+        // 3. Save installments (with custom amounts)
+        for (const installment of this.installmentsPreview) {
+          await axios.post('https://api.mawtin.net/api/v1/installments', {
+            client_id: clientId,
+            unit_id: this.selectedUnit.id,
+            installment_number: installment.installment_number,
+            amount: installment.amount,
+            due_date: installment.due_date,
+            status: 'pending',
+            paid_amount: 0
+          }, { headers: { 'Authorization': `Bearer ${token}` } });
         }
         
-        const clientId = clientResponse.data.data.id;
-        let unitId = null;
-        
-        if (this.selectedUnit) {
-          const unitResponse = await axios.post('http://127.0.0.1:8000/api/v1/units', {
-            unit_number: this.selectedUnit.unit_number,
-            price: this.selectedUnit.price,
-            area: this.selectedUnit.area,
-            location: this.selectedUnit.location || '',
-            status: 'sold',
-            client_id: clientId
-          }, {
-            headers: { 'Authorization': `Bearer ${token}` }
+        // 4. Upload images if any
+        if (this.uploadedImages.length > 0) {
+          const formData = new FormData();
+          this.uploadedImages.forEach((img, index) => {
+            formData.append(`images[${index}]`, img.file);
+            if (img.caption) formData.append(`captions[${index}]`, img.caption);
           });
+          formData.append('unit_id', this.selectedUnit.id);
           
-          if (unitResponse.data.success) {
-            unitId = unitResponse.data.data.id;
-          }
+          await axios.post('https://api.mawtin.net/api/v1/unit-images', formData, {
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
+          });
         }
         
-        if (unitId) {
-          await this.saveInstallments(clientId, unitId, token);
-        }
-        
-        if (unitId && this.imageFiles.length > 0) {
-          await this.uploadImages(unitId, token);
-        }
-        
-        if (unitId && this.milestones.length > 0) {
-          await this.saveMilestones(unitId, token);
-        }
-        
-        this.showMessage('تم إضافة العميل والوحدة والأقساط بنجاح', 'success');
-        
-        setTimeout(() => {
-          this.$router.push('/clients');
-        }, 2000);
+        this.showMessage('تم إضافة العميل وربطه بالوحدة والأقساط بنجاح', 'success');
+        setTimeout(() => this.$router.push('/clients'), 2000);
         
       } catch (error) {
         console.error('Error:', error);
-        const message = error.response?.data?.message || error.message || 'حدث خطأ في حفظ البيانات';
+        let message = 'حدث خطأ في حفظ البيانات';
+        if (error.response?.data?.message) message = error.response.data.message;
+        else if (error.response?.data?.errors) message = Object.values(error.response.data.errors).flat().join(', ');
+        else if (error.message) message = error.message;
         this.showMessage(message, 'error');
       } finally {
         this.submitting = false;
@@ -584,32 +600,17 @@ export default {
       this.toastMessage = message;
       this.toastType = type;
       this.showToast = true;
-      
-      setTimeout(() => {
-        this.showToast = false;
-      }, 3000);
+      setTimeout(() => { this.showToast = false; }, 3000);
     }
   }
 }
 </script>
 
 <style scoped>
-.rtl {
-  direction: rtl;
-}
-
+.rtl { direction: rtl; }
 @keyframes slideIn {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
-
-.animate-slideIn {
-  animation: slideIn 0.3s ease-out;
-}
+.animate-slideIn { animation: slideIn 0.3s ease-out; }
 </style>

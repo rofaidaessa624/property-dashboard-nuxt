@@ -24,27 +24,29 @@
       <button @click="login" :disabled="loading" class="login-btn">
         {{ loading ? 'جاري الدخول...' : 'دخول' }}
       </button>
-      
-      <p class="demo">admin@example.com / 123456</p>
     </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import axios from 'axios'
 
-const email = ref('')
-const password = ref('')
-const loading = ref(false)
-const errorMsg = ref('')
+definePageMeta({
+    middleware: []
+});
 
-const login = async () => {
+const email = ref<string>('')
+const password = ref<string>('')
+const loading = ref<boolean>(false)
+const errorMsg = ref<string>('')
+
+const login = async (): Promise<void> => {
   loading.value = true
   errorMsg.value = ''
   
   try {
-    const res = await axios.post('http://127.0.0.1:8000/api/v1/login', {
+    const res = await axios.post('https://api.mawtin.net/api/v1/login', {
       email: email.value,
       password: password.value
     })
@@ -52,7 +54,8 @@ const login = async () => {
     const token = res.data.token
     if (token) {
       localStorage.setItem('token', token)
-      window.location.href = '/dashboard'
+      // إعادة التوجيه للصفحة الرئيسية
+      window.location.href = '/'
     } else {
       errorMsg.value = 'فشل تسجيل الدخول'
     }
@@ -64,7 +67,7 @@ const login = async () => {
 }
 </script>
 
-<style>
+<style scoped>
 .login-container {
   min-height: 100vh;
   display: flex;
@@ -114,11 +117,5 @@ const login = async () => {
   padding: 10px;
   border-radius: 8px;
   margin-bottom: 15px;
-}
-
-.demo {
-  margin-top: 20px;
-  font-size: 12px;
-  color: #888;
 }
 </style>

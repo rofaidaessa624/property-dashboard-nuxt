@@ -9,7 +9,6 @@
       <NuxtLink to="/clients" class="nav-link">👥 العملاء</NuxtLink>
       <NuxtLink to="/units" class="nav-link">🏢 الوحدات</NuxtLink>
       <NuxtLink to="/installments" class="nav-link">💰 الأقساط</NuxtLink>
-      <NuxtLink to="/projects" class="nav-link">📋 المشاريع</NuxtLink>
     </nav>
     
     <div class="sidebar-footer">

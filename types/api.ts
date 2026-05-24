@@ -34,7 +34,7 @@ export interface Unit {
   unit_number: string
   project_name: string
   unit_type: string
-  total_price: number
+  // total_price: number
   down_payment: number
   number_of_installments: number
   location: string

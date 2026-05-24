@@ -34,33 +34,22 @@
                   v-model="form.unit_number" 
                   type="text" 
                   class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/30 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
-                  placeholder="مثال: B101"
+                  placeholder="مثال: A-12"
                   required
                 />
               </div>
               
               <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1.5">
-                  الدور
-                </label>
-                <input 
-                  v-model="form.floor" 
-                  type="number" 
-                  class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/30 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
-                  placeholder="مثال: 3"
-                />
-              </div>
-              
-              <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1.5">
-                  المساحة (م²)
+                  المساحة (م²) <span class="text-red-500">*</span>
                 </label>
                 <input 
                   v-model="form.area" 
                   type="number" 
                   step="0.01"
                   class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/30 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
-                  placeholder="مثال: 120.5"
+                  placeholder="مثال: 200"
+                  required
                 />
               </div>
               
@@ -69,7 +58,7 @@
                   السعر <span class="text-red-500">*</span>
                 </label>
                 <input 
-                  v-model="form.price" 
+                  v-model="form.total_price" 
                   type="number" 
                   class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/30 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
                   placeholder="مثال: 850000"
@@ -90,14 +79,63 @@
               
               <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1.5">
-                  الموقع
+                  الموقع <span class="text-red-500">*</span>
                 </label>
                 <input 
                   v-model="form.location" 
                   type="text" 
                   class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/30 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
-                  placeholder="المبنى - الطابق"
+                  placeholder="مثال: مدينة نصر"
+                  required
                 />
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                  عدد غرف النوم
+                </label>
+                <input 
+                  v-model="form.bedrooms" 
+                  type="number" 
+                  class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/30 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                  placeholder="مثال: 3"
+                />
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                  عدد دورات المياه
+                </label>
+                <input 
+                  v-model="form.bathrooms" 
+                  type="number" 
+                  class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/30 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                  placeholder="مثال: 2"
+                />
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                  الدور
+                </label>
+                <input 
+                  v-model="form.floor" 
+                  type="number" 
+                  class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/30 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                  placeholder="مثال: 3"
+                />
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                  العميل (اختياري)
+                </label>
+                <select v-model="form.client_id" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/30 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all">
+                  <option value="">بدون عميل</option>
+                  <option v-for="client in clients" :key="client.id" :value="client.id">
+                    {{ client.full_name }}
+                  </option>
+                </select>
               </div>
               
               <div class="md:col-span-2">
@@ -108,19 +146,20 @@
                   v-model="form.description" 
                   class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/30 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all resize-none"
                   rows="4"
-                  placeholder="وصف تفصيلي للوحدة (الغرف، التشطيبات، الإطلالة...)"
+                  placeholder="وصف تفصيلي للوحدة"
                 ></textarea>
               </div>
             </div>
           </div>
-          
+
           <!-- صور الوحدة -->
           <div class="mb-8">
             <h3 class="text-base font-bold text-slate-800 pb-3 border-b-2 border-blue-500 flex items-center gap-2">
               <span>🖼️</span> صور الوحدة
             </h3>
             
-            <div class="mt-5 border-2 border-dashed border-slate-300 rounded-xl p-6 text-center bg-slate-50/30 hover:border-blue-400 transition-colors cursor-pointer" @dragover.prevent @drop.prevent="handleDrop" @click="$refs.fileInput.click()">
+            <div class="mt-5 border-2 border-dashed border-slate-300 rounded-xl p-6 text-center bg-slate-50/30 hover:border-blue-400 transition-colors cursor-pointer" 
+                 @dragover.prevent @drop.prevent="handleDrop" @click="$refs.fileInput.click()">
               <input 
                 type="file" 
                 ref="fileInput"
@@ -134,12 +173,10 @@
               <p class="text-slate-400 text-xs mt-1">يمكنك اختيار عدة صور دفعة واحدة</p>
             </div>
             
-            <!-- معاينة الصور -->
-            <div v-if="uploadedImages.length > 0" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-5">
-              <div v-for="(img, index) in uploadedImages" :key="index" class="relative group">
+            <div v-if="images.length > 0" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-5">
+              <div v-for="(img, index) in images" :key="index" class="relative group">
                 <img :src="img.preview" class="w-full h-32 object-cover rounded-xl border border-slate-200" />
                 <button type="button" class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 text-xs hover:bg-red-600 transition-colors" @click="removeImage(index)">✖</button>
-                <input v-model="img.caption" type="text" placeholder="وصف الصورة" class="w-full mt-2 px-2 py-1 text-xs border border-slate-200 rounded-lg focus:border-blue-400 outline-none" />
               </div>
             </div>
           </div>
@@ -156,12 +193,6 @@
           </div>
         </form>
       </div>
-    </div>
-    
-    <!-- Loading Overlay -->
-    <div v-if="loading" class="fixed inset-0 bg-black/50 flex flex-col items-center justify-center z-50">
-      <div class="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin mb-4"></div>
-      <p class="text-white">جاري التحميل...</p>
     </div>
     
     <!-- Success/Error Toast -->
@@ -182,23 +213,29 @@ export default {
   
   data() {
     return {
+      clients: [],
+      images: [],
       form: {
         unit_number: '',
-        floor: '',
         area: '',
-        price: '',
+        total_price: '',
         status: 'available',
         location: '',
-        description: ''
+        description: '',
+        bedrooms: '',
+        bathrooms: '',
+        floor: '',
+        client_id: ''
       },
-      uploadedImages: [],
-      imageFiles: [],
       submitting: false,
-      loading: false,
       showToast: false,
       toastMessage: '',
       toastType: 'success'
     }
+  },
+  
+  mounted() {
+    this.fetchClients();
   },
   
   methods: {
@@ -207,7 +244,21 @@ export default {
       return new Intl.NumberFormat('ar-EG', { style: 'currency', currency: 'EGP' }).format(value);
     },
     
-    // Image Methods
+    async fetchClients() {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(`${apiBase}/api/v1/clients`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.data.success) {
+          this.clients = response.data.data;
+        }
+      } catch (error) {
+        console.error('Error fetching clients:', error);
+      }
+    },
+
     handleFileSelect(event) {
       const files = Array.from(event.target.files);
       this.processFiles(files);
@@ -223,75 +274,102 @@ export default {
         if (file.type.startsWith('image/')) {
           const reader = new FileReader();
           reader.onload = (e) => {
-            this.uploadedImages.push({
+            this.images.push({
               file: file,
-              preview: e.target.result,
-              caption: '',
-              order: this.uploadedImages.length
+              preview: e.target.result
             });
           };
           reader.readAsDataURL(file);
-          this.imageFiles.push(file);
         }
       });
     },
     
     removeImage(index) {
-      this.uploadedImages.splice(index, 1);
-      this.imageFiles.splice(index, 1);
-    },
-    
-    async uploadImages(unitId, token) {
-      if (this.imageFiles.length === 0) return;
-      
-      const formData = new FormData();
-      this.imageFiles.forEach((file, index) => {
-        formData.append('images[]', file);
-        if (this.uploadedImages[index]?.caption) {
-          formData.append(`captions[${index}]`, this.uploadedImages[index].caption);
-        }
-      });
-      formData.append('unit_id', unitId);
-      
-      await axios.post('http://127.0.0.1:8000/api/v1/unit-images', formData, {
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      this.images.splice(index, 1);
     },
     
     async submitForm() {
+      if (!this.form.unit_number) {
+        this.showMessage('الرجاء إدخال رقم الوحدة', 'error');
+        return;
+      }
+      
+      if (!this.form.total_price || this.form.total_price <= 0) {
+        this.showMessage('الرجاء إدخال سعر صحيح للوحدة', 'error');
+        return;
+      }
+      
+      if (!this.form.location) {
+        this.showMessage('الرجاء إدخال الموقع', 'error');
+        return;
+      }
+      
+      if (!this.form.area || this.form.area <= 0) {
+        this.showMessage('الرجاء إدخال المساحة', 'error');
+        return;
+      }
+      
       this.submitting = true;
       
       try {
         const token = localStorage.getItem('token');
         
-        // Create Unit
-        const response = await axios.post('http://127.0.0.1:8000/api/v1/units', this.form, {
-          headers: { 'Authorization': `Bearer ${token}` }
+        const unitData = {
+          unit_number: this.form.unit_number,
+          unit_type: 'apartment',
+          total_price: parseFloat(this.form.total_price),
+          down_payment: 0,
+          number_of_installments: 12,
+          location: this.form.location,
+          area: parseInt(this.form.area),
+          bedrooms: this.form.bedrooms ? parseInt(this.form.bedrooms) : 0,
+          bathrooms: this.form.bathrooms ? parseInt(this.form.bathrooms) : 0,
+          status: this.form.status,
+          description: this.form.description || null,
+          floor: this.form.floor ? parseInt(this.form.floor) : null
+        };
+        
+        const response = await axios.post(`${apiBase}api/v1/units`, unitData, {
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
         });
         
-        if (response.data.success) {
-          const unitId = response.data.data.id;
+        const unitId = response.data.id || response.data.data?.id;
+        
+        // رفع الصور إذا وجدت
+        if (this.images.length > 0 && unitId) {
+          const formData = new FormData();
+          this.images.forEach((img) => {
+            formData.append('images[]', img.file);
+          });
+          formData.append('unit_id', unitId);
           
-          // Upload Images
-          if (this.imageFiles.length > 0) {
-            await this.uploadImages(unitId, token);
-          }
-          
-          this.showMessage('تم إضافة الوحدة بنجاح', 'success');
-          
-          setTimeout(() => {
-            this.$router.push('/units');
-          }, 1500);
-        } else {
-          throw new Error('فشل في إضافة الوحدة');
+          await axios.post(`${apiBase}/api/v1/units`, formData, {
+            headers: { 
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'multipart/form-data'
+            }
+          });
         }
+        
+        this.showMessage('تم إضافة الوحدة بنجاح', 'success');
+        setTimeout(() => {
+          this.$router.push('/units');
+        }, 1500);
         
       } catch (error) {
         console.error('Error:', error);
-        const message = error.response?.data?.message || error.message || 'حدث خطأ في حفظ البيانات';
+        let message = 'حدث خطأ في حفظ البيانات';
+        
+        if (error.response?.data?.message) {
+          message = error.response.data.message;
+        } else if (error.response?.data?.errors) {
+          const errors = error.response.data.errors;
+          message = Object.values(errors).flat().join(', ');
+        }
+        
         this.showMessage(message, 'error');
       } finally {
         this.submitting = false;
