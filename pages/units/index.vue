@@ -381,7 +381,6 @@
 </template>
 
 <script>
-const apiBase = "https://api.mawtin.net";
 import axios from 'axios'
 
 export default {

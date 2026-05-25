@@ -207,7 +207,6 @@
 
 <script>
 import axios from 'axios';
-const apiBase = "https://api.mawtin.net";
 
 export default {
   name: 'AddUnit',
