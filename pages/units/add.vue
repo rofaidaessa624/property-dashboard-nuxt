@@ -247,7 +247,7 @@ export default {
     async fetchClients() {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get(`${apiBase}/api/v1/clients`, {
+        const response = await axios.get(`https://api.mawtin.net/api/v1/clients`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
@@ -329,7 +329,7 @@ export default {
           floor: this.form.floor ? parseInt(this.form.floor) : null
         };
         
-        const response = await axios.post(`${apiBase}api/v1/units`, unitData, {
+        const response = await axios.post(`https://api.mawtin.net/api/v1/units`, unitData, {
           headers: { 
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -346,7 +346,7 @@ export default {
           });
           formData.append('unit_id', unitId);
           
-          await axios.post(`${apiBase}/api/v1/units`, formData, {
+          await axios.post(`https://api.mawtin.net/api/v1/units`, formData, {
             headers: { 
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'multipart/form-data'

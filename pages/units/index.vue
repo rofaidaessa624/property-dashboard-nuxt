@@ -538,7 +538,7 @@ async fetchUnits() {
   this.loading = true;
   try {
     const token = localStorage.getItem('token');
-    const response = await axios.get(`${apiBase}/api/v1/units`, {
+    const response = await axios.get(`https://api.mawtin.net/api/v1/units`, {
       headers: { Authorization: `Bearer ${token}` }
     });
 
@@ -575,7 +575,7 @@ async fetchUnits() {
         const token = localStorage.getItem('token')
 
         await axios.delete(
-          `${apiBase}/api/v1/units/${id}`,
+          `https://api.mawtin.net/api/v1/units/${id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`

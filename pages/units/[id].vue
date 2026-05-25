@@ -246,7 +246,7 @@ export default {
         }
 
         try {
-          const updatesRes = await axios.get(`${apiBase}/api/v1/units/${this.unitId}/updates`, {
+          const updatesRes = await axios.get(`https://api.mawtin.net/api/v1/units/${this.unitId}/updates`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           if (updatesRes.data.success || updatesRes.data.data) {
@@ -281,7 +281,7 @@ export default {
       if (!confirm('هل أنت متأكد من حذف هذه الصورة؟')) return;
       try {
         const token = localStorage.getItem('token');
-        await axios.delete(`${apiBase}/api/v1/units/${imageId}`, {
+        await axios.delete(`https://api.mawtin.net/api/v1/units/${imageId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         this.existingImages.splice(index, 1);
@@ -308,7 +308,7 @@ export default {
       if (!confirm('هل أنت متأكد من حذف هذه المرحلة؟')) return;
       try {
         const token = localStorage.getItem('token');
-        await axios.delete(`${apiBase}/api/v1/unit-updates/${updateId}`, {
+        await axios.delete(`https://api.mawtin.net/api/v1/unit-updates/${updateId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         this.unitUpdates = this.unitUpdates.filter(u => u.id !== updateId);
@@ -335,7 +335,7 @@ export default {
           floor: this.form.floor ? parseInt(this.form.floor) : null
         };
 
-        await axios.put(`${apiBase}/api/v1/units/${this.unitId}`, updateData, {
+        await axios.put(`https://api.mawtin.net/api/v1/units/${this.unitId}`, updateData, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
@@ -346,7 +346,7 @@ export default {
           });
           formData.append('unit_id', this.unitId);
           
-          await axios.post(`${apiBase}/api/v1/units`, formData, {
+          await axios.post(`https://api.mawtin.net/api/v1/units`, formData, {
             headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
           });
         }
@@ -359,7 +359,7 @@ export default {
             updateForm.append('images[]', img.file);
           });
           
-          await axios.post(`${apiBase}/api/v1/unit-updates`, updateForm, {
+          await axios.post(`https://api.mawtin.net/api/v1/unit-updates`, updateForm, {
             headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
           });
         }
