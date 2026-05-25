@@ -40,6 +40,7 @@
 </template>
 
 <script>
+const apiBase = "https://api.mawtin.net";
 import axios from 'axios';
 
 export default {
@@ -66,7 +67,7 @@ export default {
       this.loading = true;
       try {
         const token = localStorage.getItem('client_token');
-        const response = await axios.get('https://api.mawtin.net/api/v1/client/units', {
+        const response = await axios.get('https://api.mawtin.net/api/v1/units', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
