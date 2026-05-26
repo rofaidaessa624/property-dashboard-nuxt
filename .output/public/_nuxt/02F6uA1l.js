@@ -1,0 +1,1 @@
+import{D as i,E as t}from"./BWfpNY86.js";const l=i((o,s)=>{{const e=localStorage.getItem("token")||sessionStorage.getItem("token"),n=["/login"].includes(o.path);if(!e&&!n)return console.log("🚫 No token, redirecting to login"),t("/login");if(e&&o.path==="/login")return console.log("✅ Token exists, redirecting to dashboard"),t("/dashboard")}});export{l as default};
