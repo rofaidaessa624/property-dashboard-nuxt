@@ -70,64 +70,86 @@
             </div>
           </div>
 
-          <!-- ========== صور الوحدة الموجودة ========== -->
+          <!-- ========== صور وفيديوهات الوحدة الموجودة ========== -->
           <div class="mb-8">
             <h3 class="text-base font-bold text-slate-800 pb-3 border-b-2 border-blue-500 flex items-center gap-2">
-              <span>🖼️</span> صور الوحدة الحالية
+              <span>🖼️</span> الملفات الحالية (صور - فيديوهات)
             </h3>
-            <div v-if="existingImages.length" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-5">
-              <div v-for="(img, index) in existingImages" :key="img.id" class="relative group">
-                <img :src="img.image_url || img.path" class="w-full h-32 object-cover rounded-xl border border-slate-200" />
-                <button type="button" class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 text-xs hover:bg-red-600 transition-colors" @click="deleteImage(img.id, index)">✖</button>
+            <div v-if="existingFiles.length" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-5">
+              <div v-for="(file, index) in existingFiles" :key="file.id" class="relative group">
+                <!-- عرض الصور -->
+                <img v-if="isImage(file.file_type)" :src="getFileUrl(file)" class="w-full h-32 object-cover rounded-xl border border-slate-200" />
+                <!-- عرض فيديو -->
+                <video v-else-if="isVideo(file.file_type)" class="w-full h-32 object-cover rounded-xl border border-slate-200">
+                  <source :src="getFileUrl(file)" :type="file.file_type" />
+                </video>
+                <!-- أيقونة للملفات الغير معروفة -->
+                <div v-else class="w-full h-32 bg-slate-100 rounded-xl border border-slate-200 flex items-center justify-center">
+                  <span class="text-4xl">📄</span>
+                </div>
+                <button type="button" class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 text-xs hover:bg-red-600 transition-colors" @click="deleteFile(file.id, index)">✖</button>
               </div>
             </div>
             <div v-else class="mt-5 p-8 text-center bg-slate-50 rounded-xl border border-dashed border-slate-300">
-              <p class="text-slate-400">لا توجد صور لهذه الوحدة</p>
+              <p class="text-slate-400">لا توجد ملفات لهذه الوحدة</p>
             </div>
           </div>
 
-          <!-- ========== إضافة صور جديدة ========== -->
+          <!-- ========== إضافة ملفات جديدة (صور + فيديوهات) ========== -->
           <div class="mb-8">
             <h3 class="text-base font-bold text-slate-800 pb-3 border-b-2 border-blue-500 flex items-center gap-2">
-              <span>➕</span> إضافة صور جديدة
+              <span>➕</span> إضافة ملفات جديدة (صور - فيديوهات)
             </h3>
             <div class="mt-5 border-2 border-dashed border-slate-300 rounded-xl p-6 text-center bg-slate-50/30 hover:border-blue-400 transition-colors cursor-pointer"
                  @click="$refs.fileInput.click()" @dragover.prevent @drop.prevent="handleDrop">
-              <input type="file" ref="fileInput" multiple accept="image/*" @change="handleFileSelect" style="display: none;" />
-              <div class="text-4xl mb-2">📸</div>
-              <p class="text-slate-500 text-sm">اسحب الصور هنا أو انقر للاختيار</p>
+              <input type="file" ref="fileInput" multiple accept="image/*,video/*" @change="handleFileSelect" style="display: none;" />
+              <div class="text-4xl mb-2">📸🎥</div>
+              <p class="text-slate-500 text-sm">اسحب الصور أو الفيديوهات هنا أو انقر للاختيار</p>
+              <p class="text-slate-400 text-xs mt-1">مسموح: JPG, PNG, GIF, MP4, MOV, AVI</p>
             </div>
-            <div v-if="newImages.length" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-5">
-              <div v-for="(img, index) in newImages" :key="index" class="relative group">
-                <img :src="img.preview" class="w-full h-32 object-cover rounded-xl border border-slate-200" />
-                <button @click="removeNewImage(index)" class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 text-xs hover:bg-red-600 transition-colors">✖</button>
+            <div v-if="newFiles.length" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-5">
+              <div v-for="(file, index) in newFiles" :key="index" class="relative group">
+                <!-- معاينة الصور -->
+                <img v-if="file.type.startsWith('image/')" :src="file.preview" class="w-full h-32 object-cover rounded-xl border border-slate-200" />
+                <!-- معاينة الفيديو -->
+                <video v-else-if="file.type.startsWith('video/')" class="w-full h-32 object-cover rounded-xl border border-slate-200">
+                  <source :src="file.preview" :type="file.type" />
+                </video>
+                <div v-else class="w-full h-32 bg-slate-100 rounded-xl border border-slate-200 flex items-center justify-center">
+                  <span class="text-4xl">📄</span>
+                </div>
+                <button @click="removeNewFile(index)" class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 text-xs hover:bg-red-600 transition-colors">✖</button>
               </div>
             </div>
           </div>
 
           <!-- ========== تطورات الوحدة (المراحل السابقة) ========== -->
-<!-- ========== تطورات الوحدة (المراحل السابقة) ========== -->
-<div class="mb-8">
-  <h3 class="text-base font-bold text-slate-800 pb-3 border-b-2 border-emerald-500 flex items-center gap-2">
-    <span>✅</span> تطورات الوحدة
-  </h3>
-  <div v-if="unitUpdates.length" class="space-y-3 mt-5">
-    <div v-for="update in unitUpdates" :key="update.id" class="p-4 bg-slate-50 rounded-xl border border-slate-200">
-      <div class="flex justify-between items-start">
-        <p class="text-slate-700 font-medium">{{ update.update_text }}</p>
-        <button @click="deleteUpdate(update.id)" class="text-red-500 hover:text-red-700 text-xs">✖ حذف</button>
-      </div>
-      <p class="text-xs text-slate-400 mt-2">{{ formatDate(update.created_at) }}</p>
-      <div v-if="update.images && update.images.length" class="flex gap-2 mt-3 flex-wrap">
-        <!-- ✅ تم تعديل السطر ده -->
-        <img v-for="(img, idx) in update.images" :key="idx" :src="'https://api.mawtin.net/storage/' + img.path" class="w-20 h-20 object-cover rounded-lg border" />
-      </div>
-    </div>
-  </div>
-  <div v-else class="mt-5 p-8 text-center bg-slate-50 rounded-xl border border-dashed border-slate-300">
-    <p class="text-slate-400">لا توجد تطورات مسجلة لهذه الوحدة</p>
-  </div>
-</div>
+          <div class="mb-8">
+            <h3 class="text-base font-bold text-slate-800 pb-3 border-b-2 border-emerald-500 flex items-center gap-2">
+              <span>✅</span> تطورات الوحدة
+            </h3>
+            <div v-if="unitUpdates.length" class="space-y-3 mt-5">
+              <div v-for="update in unitUpdates" :key="update.id" class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                <div class="flex justify-between items-start">
+                  <p class="text-slate-700 font-medium">{{ update.update_text }}</p>
+                  <button @click="deleteUpdate(update.id)" class="text-red-500 hover:text-red-700 text-xs">✖ حذف</button>
+                </div>
+                <p class="text-xs text-slate-400 mt-2">{{ formatDate(update.created_at) }}</p>
+                <div v-if="update.images && update.images.length" class="flex gap-2 mt-3 flex-wrap">
+                  <div v-for="(img, idx) in update.images" :key="idx" class="relative">
+                    <img v-if="isImage(img.mime_type || img.type)" :src="getFileUrl(img)" class="w-20 h-20 object-cover rounded-lg border" />
+                    <video v-else-if="isVideo(img.mime_type || img.type)" class="w-20 h-20 object-cover rounded-lg border">
+                      <source :src="getFileUrl(img)" />
+                    </video>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-else class="mt-5 p-8 text-center bg-slate-50 rounded-xl border border-dashed border-slate-300">
+              <p class="text-slate-400">لا توجد تطورات مسجلة لهذه الوحدة</p>
+            </div>
+          </div>
+
           <!-- ========== إضافة مرحلة جديدة ========== -->
           <div class="mb-8">
             <h3 class="text-base font-bold text-slate-800 pb-3 border-b-2 border-emerald-500 flex items-center gap-2">
@@ -138,17 +160,20 @@
               <textarea v-model="newUpdate.text" rows="3" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/30 text-sm focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none transition-all resize-none" placeholder="مثلاً: تم صب السقف"></textarea>
             </div>
             <div class="mt-4">
-              <label class="block text-sm font-medium text-slate-700 mb-1.5">صور المرحلة (اختياري)</label>
+              <label class="block text-sm font-medium text-slate-700 mb-1.5">ملفات المرحلة (صور - فيديوهات - اختياري)</label>
               <div class="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center bg-slate-50/30 hover:border-emerald-400 transition-colors cursor-pointer"
                    @click="$refs.updateFileInput.click()" @dragover.prevent @drop.prevent="handleDropUpdate">
-                <input type="file" ref="updateFileInput" multiple accept="image/*" @change="handleUpdateFileSelect" style="display: none;" />
-                <div class="text-4xl mb-2">📸</div>
-                <p class="text-slate-500 text-sm">اسحب صور المرحلة هنا أو انقر للاختيار</p>
+                <input type="file" ref="updateFileInput" multiple accept="image/*,video/*" @change="handleUpdateFileSelect" style="display: none;" />
+                <div class="text-4xl mb-2">📸🎥</div>
+                <p class="text-slate-500 text-sm">اسحب ملفات المرحلة هنا أو انقر للاختيار</p>
               </div>
-              <div v-if="newUpdateImages.length" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
-                <div v-for="(img, index) in newUpdateImages" :key="index" class="relative group">
-                  <img :src="img.preview" class="w-full h-32 object-cover rounded-xl border border-slate-200" />
-                  <button @click="removeUpdateImage(index)" class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 text-xs hover:bg-red-600 transition-colors">✖</button>
+              <div v-if="newUpdateFiles.length" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
+                <div v-for="(file, index) in newUpdateFiles" :key="index" class="relative group">
+                  <img v-if="file.type.startsWith('image/')" :src="file.preview" class="w-full h-32 object-cover rounded-xl border border-slate-200" />
+                  <video v-else-if="file.type.startsWith('video/')" class="w-full h-32 object-cover rounded-xl border border-slate-200">
+                    <source :src="file.preview" :type="file.type" />
+                  </video>
+                  <button @click="removeUpdateFile(index)" class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 text-xs hover:bg-red-600 transition-colors">✖</button>
                 </div>
               </div>
             </div>
@@ -185,6 +210,7 @@ export default {
       showToast: false,
       toastMessage: '',
       toastType: 'success',
+      API_BASE_URL: 'https://api.mawtin.net', // تأكد من هذا
 
       form: {
         unit_number: '',
@@ -198,16 +224,17 @@ export default {
         floor: ''
       },
 
-      existingImages: [],
-      newImages: [],
-
+      existingFiles: [],
+      newFiles: [],
       unitUpdates: [],
       newUpdate: { text: '' },
-      newUpdateImages: []
+      newUpdateFiles: []
     }
   },
+  
   mounted() {
     this.unitId = this.$route.params.id;
+    console.log('Unit ID:', this.unitId); // للتأكد من قيمة الـ ID
     if (this.unitId) {
       this.fetchUnitData();
     } else {
@@ -215,23 +242,46 @@ export default {
       setTimeout(() => this.$router.push('/units'), 1500);
     }
   },
+  
   methods: {
     formatDate(date) {
       if (!date) return '';
       return new Date(date).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
     },
 
+    isImage(mimeType) {
+      if (!mimeType) return false;
+      return mimeType.startsWith('image/');
+    },
+
+    isVideo(mimeType) {
+      if (!mimeType) return false;
+      return mimeType.startsWith('video/');
+    },
+
+    getFileUrl(file) {
+      if (file.image_url) return file.image_url;
+      if (file.path) return `${this.API_BASE_URL}/storage/${file.path}`;
+      if (file.file_path) return `${this.API_BASE_URL}/storage/${file.file_path}`;
+      if (file.url) return file.url;
+      return '';
+    },
+
     async fetchUnitData() {
       this.loading = true;
       try {
         const token = localStorage.getItem('token');
+        const url = `${this.API_BASE_URL}/api/v1/units/${this.unitId}`;
+        console.log('Fetching from URL:', url); // للتأكد من الـ URL الصحيح
         
-        const unitRes = await axios.get(`{ba}api/v1/units/${this.unitId}`, {
+        const unitRes = await axios.get(url, {
           headers: { Authorization: `Bearer ${token}` }
         });
         
-        if (unitRes.data.success || unitRes.data) {
-          const data = unitRes.data.data || unitRes.data;
+        console.log('API Response:', unitRes.data); // لمشاهدة الرد
+        
+        if (unitRes.data.success && unitRes.data.data) {
+          const data = unitRes.data.data;
           this.form = {
             unit_number: data.unit_number || '',
             area: data.area || '',
@@ -243,72 +293,107 @@ export default {
             bathrooms: data.bathrooms || '',
             floor: data.floor || ''
           };
+        } else {
+          throw new Error('Invalid response structure');
         }
 
+        // جلب صور وفيديوهات الوحدة
         try {
-          const updatesRes = await axios.get(`https://api.mawtin.net/api/v1/units/${this.unitId}/updates`, {
+          const filesRes = await axios.get(`${this.API_BASE_URL}/api/v1/units/${this.unitId}/files`, {
             headers: { Authorization: `Bearer ${token}` }
           });
-          if (updatesRes.data.success || updatesRes.data.data) {
-            this.unitUpdates = updatesRes.data.data || updatesRes.data || [];
+          if (filesRes.data.success) {
+            this.existingFiles = filesRes.data.data || [];
+          }
+        } catch (e) {
+          console.warn('تعذر جلب ملفات الوحدة:', e);
+          this.existingFiles = [];
+        }
+
+        // جلب التطورات
+        try {
+          const updatesRes = await axios.get(`${this.API_BASE_URL}/api/v1/units/${this.unitId}/updates`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (updatesRes.data.success) {
+            this.unitUpdates = updatesRes.data.data || [];
           }
         } catch (e) {
           console.warn('تعذر جلب التطورات:', e);
+          this.unitUpdates = [];
         }
 
       } catch (error) {
         console.error('Error fetching unit:', error);
-        this.showMessage('فشل في تحميل بيانات الوحدة', 'error');
+        this.showMessage('فشل في تحميل بيانات الوحدة: ' + (error.response?.data?.message || error.message), 'error');
       } finally {
         this.loading = false;
       }
     },
 
-    handleFileSelect(event) { this.processNewImages(event.target.files); },
-    handleDrop(event) { this.processNewImages(event.dataTransfer.files); },
-    processNewImages(files) {
+    // باقي الميثودات كما هي...
+    
+    handleFileSelect(event) { 
+      this.processNewFiles(event.target.files, 'unit'); 
+    },
+    
+    handleDrop(event) { 
+      this.processNewFiles(event.dataTransfer.files, 'unit'); 
+    },
+    
+    processNewFiles(files, type) {
       Array.from(files).forEach(file => {
-        if (file.type.startsWith('image/')) {
+        if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
           const reader = new FileReader();
-          reader.onload = e => this.newImages.push({ file, preview: e.target.result });
+          reader.onload = e => {
+            if (type === 'unit') {
+              this.newFiles.push({ file, preview: e.target.result, type: file.type });
+            } else {
+              this.newUpdateFiles.push({ file, preview: e.target.result, type: file.type });
+            }
+          };
           reader.readAsDataURL(file);
+        } else {
+          this.showMessage(`الملف ${file.name} غير مدعوم. المسموح: صور وفيديوهات فقط`, 'error');
         }
       });
     },
-    removeNewImage(index) { this.newImages.splice(index, 1); },
+    
+    removeNewFile(index) { 
+      this.newFiles.splice(index, 1); 
+    },
 
-    async deleteImage(imageId, index) {
-      if (!confirm('هل أنت متأكد من حذف هذه الصورة؟')) return;
+    async deleteFile(fileId, index) {
+      if (!confirm('هل أنت متأكد من حذف هذا الملف؟')) return;
       try {
         const token = localStorage.getItem('token');
-        await axios.delete(`https://api.mawtin.net/api/v1/units/${imageId}`, {
+        await axios.delete(`${this.API_BASE_URL}/api/v1/unit-files/${fileId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        this.existingImages.splice(index, 1);
-        this.showMessage('تم حذف الصورة بنجاح', 'success');
+        this.existingFiles.splice(index, 1);
+        this.showMessage('تم حذف الملف بنجاح', 'success');
       } catch (error) {
-        this.showMessage('فشل حذف الصورة', 'error');
+        this.showMessage('فشل حذف الملف', 'error');
       }
     },
 
-    handleUpdateFileSelect(event) { this.processUpdateImages(event.target.files); },
-    handleDropUpdate(event) { this.processUpdateImages(event.dataTransfer.files); },
-    processUpdateImages(files) {
-      Array.from(files).forEach(file => {
-        if (file.type.startsWith('image/')) {
-          const reader = new FileReader();
-          reader.onload = e => this.newUpdateImages.push({ file, preview: e.target.result });
-          reader.readAsDataURL(file);
-        }
-      });
+    handleUpdateFileSelect(event) { 
+      this.processNewFiles(event.target.files, 'update'); 
     },
-    removeUpdateImage(index) { this.newUpdateImages.splice(index, 1); },
+    
+    handleDropUpdate(event) { 
+      this.processNewFiles(event.dataTransfer.files, 'update'); 
+    },
+    
+    removeUpdateFile(index) { 
+      this.newUpdateFiles.splice(index, 1); 
+    },
 
     async deleteUpdate(updateId) {
       if (!confirm('هل أنت متأكد من حذف هذه المرحلة؟')) return;
       try {
         const token = localStorage.getItem('token');
-        await axios.delete(`https://api.mawtin.net/api/v1/unit-updates/${updateId}`, {
+        await axios.delete(`${this.API_BASE_URL}/api/v1/unit-updates/${updateId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         this.unitUpdates = this.unitUpdates.filter(u => u.id !== updateId);
@@ -335,31 +420,31 @@ export default {
           floor: this.form.floor ? parseInt(this.form.floor) : null
         };
 
-        await axios.put(`https://api.mawtin.net/api/v1/units/${this.unitId}`, updateData, {
+        await axios.put(`${this.API_BASE_URL}/api/v1/units/${this.unitId}`, updateData, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
-        if (this.newImages.length) {
+        if (this.newFiles.length) {
           const formData = new FormData();
-          this.newImages.forEach((img) => {
-            formData.append('images[]', img.file);
+          this.newFiles.forEach((fileItem) => {
+            formData.append('files[]', fileItem.file);
           });
           formData.append('unit_id', this.unitId);
           
-          await axios.post(`https://api.mawtin.net/api/v1/units`, formData, {
+          await axios.post(`${this.API_BASE_URL}/api/v1/units/${this.unitId}/files`, formData, {
             headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
           });
         }
 
-        if (this.newUpdate.text.trim() || this.newUpdateImages.length) {
+        if (this.newUpdate.text.trim() || this.newUpdateFiles.length) {
           const updateForm = new FormData();
           updateForm.append('unit_id', this.unitId);
           updateForm.append('update_text', this.newUpdate.text || '');
-          this.newUpdateImages.forEach((img) => {
-            updateForm.append('images[]', img.file);
+          this.newUpdateFiles.forEach((fileItem) => {
+            updateForm.append('files[]', fileItem.file);
           });
           
-          await axios.post(`https://api.mawtin.net/api/v1/unit-updates`, updateForm, {
+          await axios.post(`${this.API_BASE_URL}/api/v1/unit-updates`, updateForm, {
             headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
           });
         }
