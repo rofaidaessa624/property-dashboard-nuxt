@@ -77,9 +77,9 @@
             </h3>
             <div v-if="existingFiles.length" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-5">
               <div v-for="(file, index) in existingFiles" :key="file.id" class="relative group">
-                <img v-if="isImageFile(file.file_type || file.mime_type || file.type)" 
-                     :src="getFileUrl(file)" 
-                     class="w-full h-32 object-cover rounded-xl border border-slate-200" />
+             <img v-if="isImageFile(file.file_type || file.mime_type || file.type)" 
+     :src="file.image_url || getFileUrl(file)" />
+
                 <video v-else-if="isVideoFile(file.file_type || file.mime_type || file.type)" 
                        controls
                        class="w-full h-32 object-cover rounded-xl border border-slate-200">
@@ -152,15 +152,15 @@
                 <!-- عرض ملفات التطور (صور وفيديوهات) -->
                 <div v-if="update.images && update.images.length" class="flex gap-2 mt-3 flex-wrap">
                   <div v-for="(file, idx) in update.images" :key="idx" class="relative group">
-                    <img v-if="isImageFile(file.file_type || file.mime_type || file.type)" 
-                         :src="getFileUrl(file)" 
-                         class="w-20 h-20 object-cover rounded-lg border border-slate-200 hover:scale-105 transition-transform cursor-pointer"
-                         @click="previewImage(getFileUrl(file))" />
-                    <video v-else-if="isVideoFile(file.file_type || file.mime_type || file.type)" 
-                           class="w-20 h-20 object-cover rounded-lg border border-slate-200"
-                           @click="previewVideo(getFileUrl(file), file.file_type || file.mime_type || file.type)">
-                      <source :src="getFileUrl(file)" />
-                    </video>
+                  <img v-if="file.image_url"
+     :src="file.image_url"
+     class="w-20 h-20 object-cover rounded-lg border border-slate-200 hover:scale-105 transition-transform cursor-pointer"
+     @click="previewImage(file.image_url)" />
+                  <video v-else-if="file.image_url"
+       class="w-20 h-20 object-cover rounded-lg border border-slate-200"
+       @click="previewVideo(file.image_url, file.file_type || file.mime_type)">
+  <source :src="file.image_url" />
+</video>
                     <div v-else class="w-20 h-20 bg-gray-200 rounded-lg border flex items-center justify-center">
                       <span class="text-2xl">📷</span>
                     </div>
